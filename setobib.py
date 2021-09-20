@@ -1,6 +1,15 @@
 #!/usr/bin/env python
-import panda as pd
+import pandas as pd
 import argparse
+
+
+def read_members(members_list):
+    members = {}
+    for member in open(members_list):
+        id = member.strip().split()[0]
+        name = ' '.join(member.strip().split()[1:])
+        members[id] = name
+    return members
 
 
 def parse_args():
@@ -18,6 +27,8 @@ def parse_args():
                         help='csv containing the journals database.')
     parser.add_argument('-t', '--thesis', metavar='thesis_csv',
                         help='csv containing the thesis database.')
+    parser.add_argument('-m', '--members', metavar='members_list',
+                        help='csv containing the thesis database.')
     parser.add_argument('-o', '--output', metavar='output_file',
                         default='publications.bib', help='Output file. \
                         (Default: publications.bib).')
@@ -28,7 +39,11 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
 
-    output = open(args.output, 'r')
+    if args.members is not None:
+        members = read_members(args.members)
+        print(members)
 
-    if args.books is not None:
-        parse_books(args.books, output)
+    output = open(args.output, 'w')
+
+    '''if args.books is not None:
+        parse_books(args.books, output)'''
