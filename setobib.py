@@ -17,11 +17,55 @@ class Book:
         return self._id
 
     def add_author(self, name, order):
-        self.author[order] = name
+        self._authors[order] = name
+
+    def add_year(self, year):
+        self._year = year
+
+    def add_title(self, title):
+        self._title = title
+
+    def add_isbn(self, isbn):
+        self._isbn = isbn
+
+    def add_publisher(self, publisher):
+        self._publisher = publisher
+
+    def add_id(self, id):
+        self._id = id
+
+    def get_author_field(self):
+        field = ''
+        indexes = [k for k in self._authors.keys()]
+        indexes.sort()
+        counter = 0
+        for index in indexes:
+            author = self._authors[index]
+            field += author
+            if counter + 1 < len(indexes):
+                field += ' and '
+            counter += 1
+        return field
+
+    def generate_bib_id(self):
+        authors = [k for k in self._authors.keys()]
+        authors.sort()
+        return (self._authors[authors[0]].split()[0].strip(',')
+                + str(self._year))
+
+    def generate_entry(self):
+        entry = ('@book{' + self.generate_bib_id() + ',\n'
+                 + 'title = {' + self._title + '},\n'
+                 + 'author = {' + self.get_author_field() + '},\n'
+                 + 'year = {' + str(self._year) + '},\n'
+                 + 'isbn = {' + self._isbn + '},\n'
+                 + 'publisher = {' + self._publisher + '}\n'
+                 + '}\n\n')
+        self._output.write(entry)
 
 
 def author_name(name, id, members):
-    if id in members.keys():
+    if members is not None and id in members.keys():
         return members[id]
     return name
 
@@ -37,16 +81,21 @@ def parse_books(books_db, output, members):
                 new_book = False
                 b.add_author(author_name(book['AUT_FIRMANTE'],
                                          book['AUT_PER_ID'], members),
-                             book['AUT_ORDEN'])
+                             int(book['AUT_ORDEN']))
         if new_book:
             b = Book(output)
+            b.add_id(id)
             b.add_year(book['LIB_ANYO'])
             b.add_author(author_name(book['AUT_FIRMANTE'],
                                      book['AUT_PER_ID'], members),
-                         book['AUT_ORDEN'])
+                         int(book['AUT_ORDEN']))
             b.add_title(book['LIB_TITULO'])
             b.add_isbn(book['LIB_ISBN'])
             b.add_publisher(book['LIB_EDITORIAL'])
+            books.append(b)
+
+    for book in books:
+        book.generate_entry()
 
 
 def read_members(members_list):
@@ -94,3 +143,5 @@ if __name__ == '__main__':
 
     if args.books is not None:
         parse_books(args.books, output, members)
+
+    output.close()
