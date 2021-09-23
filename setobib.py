@@ -1,13 +1,43 @@
 #!/usr/bin/env python
 import pandas as pd
 import argparse
-from entries import Book
+from entries import Book, Chapter
 
 
 def author_name(name, id, members):
     if members is not None and id in members.keys():
         return members[id]
     return name
+
+
+def parse_chapters(chapters_db, output, members):
+    df = pd.read_csv(chapters_db)
+    chapters = []
+    for index, chapter in df.iterrows():
+        id = chapter['ELC_ID']
+        new_chapter = True
+        for c in chapters:
+            if id == c.get_id():
+                new_chapter = False
+                c.add_author(author_name(chapter['AUT_FIRMANTE'],
+                                         chapter['AUT_PER_ID'], members),
+                             int(chapter['AUT_ORDEN']))
+        if new_chapter:
+            c = Chapter(output)
+            c.add_id(id)
+            c.add_year(chapter['LIB_ANYO'])
+            c.add_author(author_name(chapter['AUT_FIRMANTE'],
+                                     chapter['AUT_PER_ID'], members),
+                         int(chapter['AUT_ORDEN']))
+            c.add_title(chapter['LIB_TITULO'])
+            c.add_isbn(chapter['LIB_ISBN'])
+            c.add_publisher(chapter['LIB_EDITORIAL'])
+            c.add_chapter_title(chapter['CAP_TITULO'])
+            c.add_pages(chapter['CAP_PAGINICIO'], chapter['CAP_PAGFIN'])
+            chapters.append(c)
+
+    for chapter in chapters:
+        chapter.generate_entry()
 
 
 def parse_books(books_db, output, members):
@@ -83,5 +113,8 @@ if __name__ == '__main__':
 
     if args.books is not None:
         parse_books(args.books, output, members)
+
+    if args.chapters is not None:
+        parse_chapters(args.chapters, output, members)
 
     output.close()
