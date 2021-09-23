@@ -1,13 +1,42 @@
 #!/usr/bin/env python
 import pandas as pd
 import argparse
-from entries import Book, Chapter
+from entries import Book, Chapter, Proceeding
 
 
 def author_name(name, id, members):
     if members is not None and id in members.keys():
         return members[id]
     return name
+
+
+def parse_proceedings(conferences_db, output, members):
+    df = pd.read_csv(conferences_db).fillna(-1)
+    proceedings = []
+    for index, proceeding in df.iterrows():
+        id = proceeding['ELC_ID']
+        new_proceeding = True
+        for p in proceedings:
+            if id == p.get_id():
+                new_proceeding = False
+                p.add_author(author_name(proceeding['AUT_FIRMANTE'],
+                                         proceeding['AUT_PER_ID'], members),
+                             int(proceeding['AUT_ORDEN']))
+        if new_proceeding:
+            p = Proceeding(output)
+            p.add_id(id)
+            p.add_year(proceeding['COA_FECHA'].split('-')[0])
+            p.add_author(author_name(proceeding['AUT_FIRMANTE'],
+                                     proceeding['AUT_PER_ID'], members),
+                         int(proceeding['AUT_ORDEN']))
+            p.add_title(proceeding['PAC_TITULO'])
+            p.add_booktitle(proceeding['COA_TITULO'])
+            p.add_pages(int(proceeding['PAC_PAGINI']),
+                        int(proceeding['PAC_PAGFIN']))
+            proceedings.append(p)
+
+    for proceeding in proceedings:
+        proceeding.generate_entry()
 
 
 def parse_chapters(chapters_db, output, members):
@@ -116,5 +145,8 @@ if __name__ == '__main__':
 
     if args.chapters is not None:
         parse_chapters(args.chapters, output, members)
+
+    if args.proceedings is not None:
+        parse_proceedings(args.proceedings, output, members)
 
     output.close()
