@@ -1,3 +1,78 @@
+class Journal:
+    def __init__(self, output):
+        self._output = output
+        self._id = None
+        self._year = None
+        self._authors = {}
+        self._title = None
+        self._pages = None
+        self._volume = None
+        self._number = None
+        self._journal = None
+
+    def get_id(self):
+        return self._id
+
+    def add_author(self, name, order):
+        self._authors[order] = name
+
+    def add_year(self, year):
+        self._year = year
+
+    def add_title(self, title):
+        self._title = title
+
+    def add_volume(self, volume):
+        self._volume = str(volume) if volume != -1 else ''
+
+    def add_number(self, number):
+        self._number = str(number) if number != -1 else ''
+
+    def add_journal(self, journal):
+        self._journal = journal
+
+    def add_id(self, id):
+        self._id = id
+
+    def add_pages(self, start, end):
+        if start == -1 or end == -1:
+            self._pages = ''
+        else:
+            self._pages = str(start) + '--' + str(end)
+
+    def get_author_field(self):
+        field = ''
+        indexes = [k for k in self._authors.keys()]
+        indexes.sort()
+        counter = 0
+        for index in indexes:
+            author = self._authors[index]
+            if type(author) == str:
+                field += author
+                if counter + 1 < len(indexes):
+                    field += ' and '
+            counter += 1
+        return field
+
+    def generate_bib_id(self):
+        authors = [k for k in self._authors.keys()]
+        authors.sort()
+        return (self._authors[authors[0]].split()[0].strip(',')
+                + str(self._year))
+
+    def generate_entry(self):
+        entry = ('@article{' + self.generate_bib_id() + ',\n'
+                 + 'title = {' + self._title + '},\n'
+                 + 'journal = {' + self._journal + '},\n'
+                 + 'author = {' + self.get_author_field() + '},\n'
+                 + 'year = {' + str(self._year) + '},\n'
+                 + 'pages = {' + self._pages + '},\n'
+                 + 'volume = {' + self._volume + '},\n'
+                 + 'number = {' + self._number + '}\n'
+                 + '}\n\n')
+        self._output.write(entry)
+
+
 class Proceeding:
     def __init__(self, output):
         self._output = output

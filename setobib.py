@@ -1,13 +1,44 @@
 #!/usr/bin/env python
 import pandas as pd
 import argparse
-from entries import Book, Chapter, Proceeding
+from entries import Book, Chapter, Proceeding, Journal
 
 
 def author_name(name, id, members):
     if members is not None and id in members.keys():
         return members[id]
     return name
+
+
+def parse_journals(journals_db, output, members):
+    df = pd.read_csv(journals_db).fillna(-1)
+    journals = []
+    for index, journal in df.iterrows():
+        id = journal['ELC_ID']
+        new_journal = True
+        for p in journals:
+            if id == p.get_id():
+                new_journal = False
+                p.add_author(author_name(journal['AUT_FIRMANTE'],
+                                         journal['AUT_PER_ID'], members),
+                             int(journal['AUT_ORDEN']))
+        if new_journal:
+            j = Journal(output)
+            j.add_id(id)
+            j.add_year(journal['ART_ANYO'])
+            j.add_author(author_name(journal['AUT_FIRMANTE'],
+                                     journal['AUT_PER_ID'], members),
+                         int(journal['AUT_ORDEN']))
+            j.add_title(journal['ART_TITULO'])
+            j.add_journal(journal['REV_TITULO'])
+            j.add_volume(journal['ART_VOLUMEN'])
+            j.add_number(journal['ART_NUMERO'])
+            j.add_pages(int(journal['ART_PAGDESDE']),
+                        int(journal['ART_PAGHASTA']))
+            journals.append(j)
+
+    for journal in journals:
+        journal.generate_entry()
 
 
 def parse_proceedings(conferences_db, output, members):
@@ -148,5 +179,8 @@ if __name__ == '__main__':
 
     if args.proceedings is not None:
         parse_proceedings(args.proceedings, output, members)
+
+    if args.journals is not None:
+        parse_journals(args.journals, output, members)
 
     output.close()
