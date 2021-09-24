@@ -1,13 +1,41 @@
 #!/usr/bin/env python
 import pandas as pd
 import argparse
-from entries import Book, Chapter, Proceeding, Journal
+from entries import Book, Chapter, Proceeding, Journal, Thesis
 
 
 def author_name(name, id, members):
     if members is not None and id in members.keys():
         return members[id]
     return name
+
+
+def parse_thesis(thesis_db, output, members):
+    df = pd.read_csv(thesis_db).fillna(-1)
+    dissertations = []
+    for index, thesis in df.iterrows():
+        id = thesis['ID_EXT']
+        if id == -1:
+            id = thesis['ELC_ID']
+        new_thesis = True
+        for p in dissertations:
+            if id == p.get_id():
+                new_thesis = False
+                p.add_advisor(author_name(thesis['AUT_FIRMANTE'],
+                                          thesis['AUT_PER_ID'], members))
+        if new_thesis:
+            t = Thesis(output)
+            t.add_id(id)
+            t.add_year(thesis['TSI_FECHALECTURA'].split('-')[0])
+            t.add_advisor(author_name(thesis['AUT_FIRMANTE'],
+                                      thesis['AUT_PER_ID'], members))
+            t.add_author(thesis['TSI_APELLIDOS'] + ', ' + thesis['TSI_NOMBRE'])
+            t.add_title(thesis['TSI_TITULOTESIS'])
+            t.add_school(thesis['TUN_NOMBRE'])
+            dissertations.append(t)
+
+    for thesis in dissertations:
+        thesis.generate_entry()
 
 
 def parse_journals(journals_db, output, members):
@@ -182,5 +210,8 @@ if __name__ == '__main__':
 
     if args.journals is not None:
         parse_journals(args.journals, output, members)
+
+    if args.thesis is not None:
+        parse_thesis(args.thesis, output, members)
 
     output.close()

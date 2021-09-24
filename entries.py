@@ -1,3 +1,49 @@
+class Thesis:
+    def __init__(self, output):
+        self._output = output
+        self._id = None
+        self._year = None
+        self._author = None
+        self._advisors = []
+        self._title = None
+        self._school = None
+
+    def get_id(self):
+        return self._id
+
+    def add_advisor(self, advisor):
+        self._advisors.append(advisor)
+
+    def add_author(self, author):
+        self._author = author
+
+    def add_year(self, year):
+        self._year = year
+
+    def add_title(self, title):
+        self._title = title
+
+    def add_id(self, id):
+        self._id = id
+
+    def add_school(self, school):
+        self._school = school
+
+    def generate_bib_id(self):
+        return self._author.split()[0] + str(self._year)
+
+    def generate_entry(self):
+        entry = ('@phdthesis{' + self.generate_bib_id() + ',\n'
+                 + 'title = {' + self._title + '},\n'
+                 + 'author = {' + self._author + '},\n'
+                 + 'year = {' + str(self._year) + '},\n'
+                 + 'school = {' + self._school + '},\n'
+                 + 'note = {Advisor/s: ' + ' and '.join(self._advisors)
+                 + '},\n'
+                 + '}\n\n')
+        self._output.write(entry)
+
+
 class Journal:
     def __init__(self, output):
         self._output = output
