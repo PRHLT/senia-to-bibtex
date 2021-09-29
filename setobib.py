@@ -166,8 +166,8 @@ def read_members(members_list):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='This script reads a \
-                                     several csv files from Senia and \
+    parser = argparse.ArgumentParser(description='This script reads one \
+                                     or more csv files from Senia and \
                                      generates a BibTex file.')
     parser.add_argument('-b', '--books', metavar='books_csv',
                         help='csv containing the book database.')
