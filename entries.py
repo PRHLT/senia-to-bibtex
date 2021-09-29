@@ -30,7 +30,7 @@ class Thesis:
         self._school = school
 
     def generate_bib_id(self):
-        return self._author.split()[0] + str(self._year)
+        return self._author.split()[0].strip(',') + str(self._year)
 
     def generate_entry(self):
         entry = ('@phdthesis{' + self.generate_bib_id() + ',\n'
