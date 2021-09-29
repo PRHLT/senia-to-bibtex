@@ -159,7 +159,7 @@ def parse_books(books_db, output, members):
 def read_members(members_list):
     members = {}
     for member in open(members_list):
-        id = member.strip().split()[0]
+        id = int(member.strip().split()[0])
         name = ' '.join(member.strip().split()[1:])
         members[id] = name
     return members
